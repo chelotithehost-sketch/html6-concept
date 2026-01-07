@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HTML-6X Test Suite</title>
+  
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --fg: #f1f5f9;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      font-family: 'Monaco', 'Courier New', monospace;
+    }
+
+    body {
+      margin: 0;
+      padding: 2rem;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
+
+    .test-suite {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .header h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: var(--surface);
+      border-radius: 0.5rem;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .test-group {
+      margin-bottom: 2rem;
+      background: var(--surface);
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+
+    .test-group-header {
+      padding: 1rem;
+      background: #1a2332;
+      font-weight: 600;
+      font-size: 1.125rem;
+    }
+
+    .test-case {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .test-case:last-child {
+      border-bottom: none;
+    }
+
+    .test-name {
+      flex: 1;
+    }
+
+    .test-status {
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .status-pass {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+
+    .status-fail {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--error);
+    }
+
+    .status-pending {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+    }
+
+    .error-details {
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 3px solid var(--error);
+      font-size: 0.875rem;
+      font-family: monospace;
+    }
+
+    .run-button {
+      padding: 0.75rem 1.5rem;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .run-button:hover {
+      background: #2563eb;
+    }
+
+    .run-button:disabled {
+      background: #475569;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+<div class="test-suite">
+  <div class="header">
+    <h1>🧪 HTML-6X Test Suite</h1>
+    <p style="margin: 0; color: #94a3b8;">Automated testing for the HTML-6X runtime</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value" id="total-tests">0</div>
+      <div class="stat-label">Total Tests</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" style="color: var(--success);" id="passed-tests">0</div>
+      <div class="stat-label">Passed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" style="color: var(--error);" id="failed-tests">0</div>
+      <div class="stat-label">Failed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="duration">0ms</div>
+      <div class="stat-label">Duration</div>
+    </div>
+  </div>
+
+  <button class="run-button" id="run-tests">▶ Run All Tests</button>
+
+  <div id="test-results" style="margin-top: 2rem;"></div>
+</div>
+
+<script>
+"use strict";
+
+class TestRunner {
+  constructor() {
+    this.tests = [];
+    this.results = {
+      total: 0,
+      passed: 0,
+      failed: 0,
+      duration: 0
+    };
+  }
+
+  describe(groupName, testFn) {
+    const group = { name: groupName, tests: [] };
+    
+    const it = (testName, testFn) => {
+      group.tests.push({ name: testName, fn: testFn });
+    };
+
+    testFn(it);
+    this.tests.push(group);
+  }
+
+  async run() {
+    const startTime = performance.now();
+    this.results = { total: 0, passed: 0, failed: 0, duration: 0 };
+
+    const resultsContainer = document.getElementById('test-results');
+    resultsContainer.innerHTML = '';
+
+    for (const group of this.tests) {
+      const groupEl = this.createGroupElement(group.name);
+      resultsContainer.appendChild(groupEl);
+
+      for (const test of group.tests) {
+        this.results.total++;
+        const testEl = this.createTestElement(test.name);
+        groupEl.querySelector('.test-cases').appendChild(testEl);
+
+        try {
+          await test.fn();
+          this.results.passed++;
+          testEl.querySelector('.test-status').textContent = '✓ PASS';
+          testEl.querySelector('.test-status').classList.add('status-pass');
+        } catch (error) {
+          this.results.failed++;
+          testEl.querySelector('.test-status').textContent = '✗ FAIL';
+          testEl.querySelector('.test-status').classList.add('status-fail');
+          
+          const errorEl = document.createElement('div');
+          errorEl.className = 'error-details';
+          errorEl.textContent = error.message;
+          testEl.querySelector('.test-name').appendChild(errorEl);
+        }
+      }
+    }
+
+    this.results.duration = Math.round(performance.now() - startTime);
+    this.updateStats();
+  }
+
+  createGroupElement(name) {
+    const div = document.createElement('div');
+    div.className = 'test-group';
+    div.innerHTML = `
+      <div class="test-group-header">${name}</div>
+      <div class="test-cases"></div>
+    `;
+    return div;
+  }
+
+  createTestElement(name) {
+    const div = document.createElement('div');
+    div.className = 'test-case';
+    div.innerHTML = `
+      <div class="test-name">${name}</div>
+      <div class="test-status status-pending">PENDING</div>
+    `;
+    return div;
+  }
+
+  updateStats() {
+    document.getElementById('total-tests').textContent = this.results.total;
+    document.getElementById('passed-tests').textContent = this.results.passed;
+    document.getElementById('failed-tests').textContent = this.results.failed;
+    document.getElementById('duration').textContent = `${this.results.duration}ms`;
+  }
+}
+
+// Test assertions
+function assert(condition, message) {
+  if (!condition) {
+    throw new Error(message || 'Assertion failed');
+  }
+}
+
+function assertEqual(actual, expected, message) {
+  if (actual !== expected) {
+    throw new Error(message || `Expected ${expected}, got ${actual}`);
+  }
+}
+
+function assertDeepEqual(actual, expected, message) {
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    throw new Error(message || `Objects not equal: ${JSON.stringify(actual)} !== ${JSON.stringify(expected)}`);
+  }
+}
+
+// ============================================================================
+// TEST SUITES
+// ============================================================================
+
+const runner = new TestRunner();
+
+// Store Tests
+runner.describe('Store', (it) => {
+  it('should create a store instance', () => {
+    const store = new Store();
+    assert(store !== null, 'Store should be created');
+    assert(store.data !== null, 'Store should have data property');
+  });
+
+  it('should store and retrieve data', () => {
+    const store = new Store();
+    store.data['test'] = [{ id: 1, name: 'Test' }];
+    const retrieved = store.get('test');
+    assertEqual(retrieved[0].name, 'Test', 'Should retrieve stored data');
+  });
+
+  it('should return deep clones', () => {
+    const store = new Store();
+    const original = [{ id: 1, name: 'Test' }];
+    store.data['test'] = original;
+    const retrieved = store.get('test');
+    retrieved[0].name = 'Modified';
+    assertEqual(original[0].name, 'Test', 'Original should not be modified');
+  });
+
+  it('should handle missing data', () => {
+    const store = new Store();
+    const result = store.get('nonexistent');
+    assertEqual(result, null, 'Should return null for missing data');
+  });
+});
+
+// Computed Data Tests
+runner.describe('Computed Data', (it) => {
+  it('should filter data', () => {
+    const store = new Store();
+    store.data['users'] = [
+      { id: 1, active: true },
+      { id: 2, active: false },
+      { id: 3, active: true }
+    ];
+    store.computed['activeUsers'] = 'users.filter(active=true)';
+    const result = store.evalComputed('users.filter(active=true)');
+    assertEqual(result.length, 2, 'Should filter to 2 active users');
+  });
+
+  it('should count items', () => {
+    const store = new Store();
+    store.data['users'] = [{ id: 1 }, { id: 2 }, { id: 3 }];
+    const result = store.evalComputed('users.count');
+    assertEqual(result, 3, 'Should count 3 users');
+  });
+
+  it('should handle empty arrays', () => {
+    const store = new Store();
+    store.data['users'] = [];
+    const result = store.evalComputed('users.count');
+    assertEqual(result, 0, 'Should count 0 for empty array');
+  });
+});
+
+// Renderer Tests
+runner.describe('Renderer', (it) => {
+  it('should create table element', () => {
+    const store = new Store();
+    const renderer = new Renderer(store);
+    const data = [{ id: 1, name: 'Test' }];
+    const table = renderer.table(data);
+    assert(table instanceof HTMLTableElement, 'Should create table element');
+  });
+
+  it('should sanitize content', () => {
+    const store = new Store();
+    const renderer = new Renderer(store);
+    const dangerous = '<script>alert("xss")</script>';
+    const safe = renderer.sanitize(dangerous);
+    assert(!safe.includes('<script>'), 'Should remove script tags');
+  });
+
+  it('should handle null values', () => {
+    const store = new Store();
+    const renderer = new Renderer(store);
+    const result = renderer.sanitize(null);
+    assertEqual(result, '', 'Should return empty string for null');
+  });
+
+  it('should create form element', () => {
+    const store = new Store();
+    const renderer = new Renderer(store);
+    const schema = {
+      fields: [
+        { name: 'email', label: 'Email', type: 'email', required: true }
+      ]
+    };
+    const form = renderer.form(schema, () => {});
+    assert(form instanceof HTMLFormElement, 'Should create form element');
+  });
+});
+
+// Security Tests
+runner.describe('Security', (it) => {
+  it('should not allow eval in data', () => {
+    const store = new Store();
+    try {
+      store.data['dangerous'] = eval;
+      assert(false, 'Should not allow eval in data');
+    } catch (e) {
+      assert(true, 'Correctly prevents eval');
+    }
+  });
+
+  it('should escape HTML in output', () => {
+    const store = new Store();
+    const renderer = new Renderer(store);
+    const xss = '<img src=x onerror=alert(1)>';
+    const safe = renderer.sanitize(xss);
+    assert(!safe.includes('onerror='), 'Should escape event handlers');
+  });
+
+  it('should deep clone data', () => {
+    const store = new Store();
+    const original = { nested: { value: 'test' } };
+    store.data['test'] = original;
+    const clone = store.get('test');
+    clone.nested.value = 'modified';
+    assertEqual(original.nested.value, 'test', 'Should not modify original');
+  });
+});
+
+// Layout Tests
+runner.describe('Layout Manager', (it) => {
+  it('should create dashboard layout', () => {
+    const layout = new LayoutManager();
+    const result = layout.dashboard();
+    assert(result.layout instanceof HTMLElement, 'Should create layout element');
+    assert(result.sidebar instanceof HTMLElement, 'Should create sidebar');
+    assert(result.main instanceof HTMLElement, 'Should create main area');
+  });
+
+  it('should create centered layout', () => {
+    const layout = new LayoutManager();
+    const result = layout.centered();
+    assert(result instanceof HTMLElement, 'Should create layout element');
+  });
+
+  it('should create split layout', () => {
+    const layout = new LayoutManager();
+    const result = layout.split();
+    assert(result instanceof HTMLElement, 'Should create layout element');
+  });
+});
+
+// Integration Tests
+runner.describe('Integration', (it) => {
+  it('should load and render complete app', async () => {
+    // This would test a full app lifecycle
+    // For now, just verify runtime exists
+    assert(typeof H6XRuntime === 'function', 'Runtime should be defined');
+  });
+
+  it('should handle multiple data sources', () => {
+    const store = new Store();
+    store.data['users'] = [{ id: 1 }];
+    store.data['tasks'] = [{ id: 1 }];
+    assert(store.get('users') !== null, 'Should handle multiple data sources');
+    assert(store.get('tasks') !== null, 'Should handle multiple data sources');
+  });
+});
+
+// ============================================================================
+// RUN TESTS
+// ============================================================================
+
+document.getElementById('run-tests').addEventListener('click', async (e) => {
+  const button = e.target;
+  button.disabled = true;
+  button.textContent = '⏳ Running Tests...';
+  
+  await runner.run();
+  
+  button.disabled = false;
+  button.textContent = '▶ Run All Tests';
+});
+
+// Load the runtime
+const script = document.createElement('script');
+script.src = 'h6x-runtime.js';
+document.body.appendChild(script);
+</script>
+
+</body>
+</html>

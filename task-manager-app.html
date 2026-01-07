@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Task Manager | HTML-6X Advanced Example</title>
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self' 'unsafe-inline';
+                 style-src 'self' 'unsafe-inline';
+                 object-src 'none';
+                 base-uri 'none'">
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --fg: #f1f5f9;
+      --fg-muted: #94a3b8;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: 600;
+      line-height: 1.2;
+      margin-top: 0;
+    }
+
+    /* Hide h6x tags until processed */
+    h6x-app,
+    h6x-data,
+    h6x-state,
+    h6x-layout,
+    h6x-panel,
+    h6x-atom {
+      display: none;
+    }
+
+    /* Custom styling for task priorities */
+    .priority-high {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .priority-medium {
+      color: var(--warning);
+      font-weight: 500;
+    }
+
+    .priority-low {
+      color: var(--fg-muted);
+    }
+
+    /* Status badges */
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-pending {
+      background: rgba(59, 130, 246, 0.2);
+      color: var(--primary);
+    }
+
+    .status-in-progress {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+    }
+
+    .status-completed {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+  </style>
+</head>
+<body>
+
+<h6x-app name="Task Manager Pro" mode="deterministic">
+
+  <!-- ========================================================================
+       DATA LAYER
+       ======================================================================== -->
+
+  <!-- Base task data -->
+  <h6x-data name="tasks" persist="indexeddb">
+    [
+      {
+        "id": 1,
+        "title": "Design new landing page",
+        "description": "Create mockups for the new marketing site",
+        "status": "in-progress",
+        "priority": "high",
+        "assignee": "Alice",
+        "dueDate": "2026-01-10",
+        "tags": ["design", "marketing"],
+        "createdAt": "2026-01-05"
+      },
+      {
+        "id": 2,
+        "title": "Fix login authentication bug",
+        "description": "Users report being logged out randomly",
+        "status": "pending",
+        "priority": "high",
+        "assignee": "Bob",
+        "dueDate": "2026-01-08",
+        "tags": ["bug", "security"],
+        "createdAt": "2026-01-06"
+      },
+      {
+        "id": 3,
+        "title": "Update documentation",
+        "description": "Add API examples and troubleshooting guide",
+        "status": "pending",
+        "priority": "medium",
+        "assignee": "Charlie",
+        "dueDate": "2026-01-15",
+        "tags": ["docs"],
+        "createdAt": "2026-01-04"
+      },
+      {
+        "id": 4,
+        "title": "Optimize database queries",
+        "description": "Reduce page load time by improving query performance",
+        "status": "completed",
+        "priority": "medium",
+        "assignee": "Alice",
+        "dueDate": "2026-01-06",
+        "tags": ["performance", "backend"],
+        "createdAt": "2026-01-02"
+      },
+      {
+        "id": 5,
+        "title": "Setup CI/CD pipeline",
+        "description": "Automate testing and deployment process",
+        "status": "pending",
+        "priority": "low",
+        "assignee": "Bob",
+        "dueDate": "2026-01-20",
+        "tags": ["devops"],
+        "createdAt": "2026-01-03"
+      },
+      {
+        "id": 6,
+        "title": "Implement dark mode",
+        "description": "Add theme switcher and dark color scheme",
+        "status": "in-progress",
+        "priority": "medium",
+        "assignee": "Charlie",
+        "dueDate": "2026-01-12",
+        "tags": ["feature", "ui"],
+        "createdAt": "2026-01-05"
+      }
+    ]
+  </h6x-data>
+
+  <!-- Team members -->
+  <h6x-data name="team">
+    [
+      {"id": 1, "name": "Alice", "role": "Designer", "avatar": "👩‍🎨"},
+      {"id": 2, "name": "Bob", "role": "Developer", "avatar": "👨‍💻"},
+      {"id": 3, "name": "Charlie", "role": "Tech Writer", "avatar": "📝"}
+    ]
+  </h6x-data>
+
+  <!-- ========================================================================
+       COMPUTED DATA
+       ======================================================================== -->
+
+  <!-- Task statistics -->
+  <h6x-data name="totalTasks" compute="tasks.count">
+  </h6x-data>
+
+  <h6x-data name="pendingTasks" compute="tasks.filter(status=pending)">
+  </h6x-data>
+
+  <h6x-data name="inProgressTasks" compute="tasks.filter(status=in-progress)">
+  </h6x-data>
+
+  <h6x-data name="completedTasks" compute="tasks.filter(status=completed)">
+  </h6x-data>
+
+  <h6x-data name="highPriorityTasks" compute="tasks.filter(priority=high)">
+  </h6x-data>
+
+  <!-- Counts -->
+  <h6x-data name="pendingCount" compute="pendingTasks.count">
+  </h6x-data>
+
+  <h6x-data name="inProgressCount" compute="inProgressTasks.count">
+  </h6x-data>
+
+  <h6x-data name="completedCount" compute="completedTasks.count">
+  </h6x-data>
+
+  <h6x-data name="highPriorityCount" compute="highPriorityTasks.count">
+  </h6x-data>
+
+  <!-- ========================================================================
+       STATE MANAGEMENT
+       ======================================================================== -->
+
+  <h6x-state name="currentView" initial="all">
+  </h6x-state>
+
+  <h6x-state name="selectedTask" initial="null">
+  </h6x-state>
+
+  <h6x-state name="filterStatus" initial="all">
+  </h6x-state>
+
+  <!-- ========================================================================
+       LAYOUT & UI
+       ======================================================================== -->
+
+  <h6x-layout type="dashboard">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <h6x-panel slot="sidebar">
+      <div style="padding: 1rem; border-bottom: 1px solid var(--border);">
+        <h3 style="margin: 0; font-size: 1.25rem;">📋 Task Manager</h3>
+      </div>
+      
+      <div style="padding: 1rem 0;">
+        <div style="padding: 0.5rem 1rem; color: var(--fg-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+          Views
+        </div>
+        All Tasks
+        Pending
+        In Progress
+        Completed
+        
+        <div style="padding: 0.5rem 1rem; margin-top: 1rem; color: var(--fg-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+          Team
+        </div>
+        Team Members
+        My Tasks
+        
+        <div style="padding: 0.5rem 1rem; margin-top: 1rem; color: var(--fg-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+          Settings
+        </div>
+        Preferences
+        Export Data
+      </div>
+    </h6x-panel>
+
+    <!-- MAIN CONTENT -->
+    <h6x-panel slot="main">
+      
+      <!-- Header -->
+      <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Task Dashboard</h1>
+        <p style="color: var(--fg-muted); margin: 0;">Manage your team's tasks and track progress</p>
+      </div>
+
+      <!-- Statistics Overview -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        
+        <h6x-atom type="stat" compute="tasks.count" label="Total Tasks">
+        </h6x-atom>
+
+        <h6x-atom type="stat" compute="pendingTasks.count" label="Pending">
+        </h6x-atom>
+
+        <h6x-atom type="stat" compute="inProgressTasks.count" label="In Progress">
+        </h6x-atom>
+
+        <h6x-atom type="stat" compute="completedTasks.count" label="Completed">
+        </h6x-atom>
+
+      </div>
+
+      <!-- High Priority Tasks Alert -->
+      <div style="margin-bottom: 2rem;">
+        <h6x-atom type="card">
+          {
+            "title": "⚠️ High Priority Tasks",
+            "content": "You have urgent tasks that need attention. Review the high-priority items below."
+          }
+        </h6x-atom>
+      </div>
+
+      <!-- Task Table -->
+      <div style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2 style="font-size: 1.5rem; margin: 0;">All Tasks</h2>
+          <button style="padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 500;">
+            + New Task
+          </button>
+        </div>
+
+        <h6x-atom type="table" source="tasks">
+        </h6x-atom>
+      </div>
+
+      <!-- Quick Stats Cards -->
+      <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Task Breakdown</h2>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        
+        <h6x-atom type="card">
+          {
+            "title": "📌 Pending Tasks",
+            "content": "Tasks waiting to be started. Assign team members and set priorities to begin work."
+          }
+        </h6x-atom>
+
+        <h6x-atom type="card">
+          {
+            "title": "🚀 In Progress",
+            "content": "Tasks currently being worked on. Monitor progress and provide support as needed."
+          }
+        </h6x-atom>
+
+        <h6x-atom type="card">
+          {
+            "title": "✅ Completed",
+            "content": "Successfully finished tasks. Great work team! Review and archive when ready."
+          }
+        </h6x-atom>
+
+      </div>
+
+      <!-- Team Section -->
+      <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Team Members</h2>
+      
+      <h6x-atom type="list" source="team">
+      </h6x-atom>
+
+      <!-- New Task Form -->
+      <h2 style="font-size: 1.5rem; margin: 2rem 0 1rem 0;">Create New Task</h2>
+      
+      <h6x-atom type="form">
+        {
+          "fields": [
+            {
+              "name": "title",
+              "label": "Task Title",
+              "type": "text",
+              "required": true
+            },
+            {
+              "name": "description",
+              "label": "Description",
+              "type": "textarea",
+              "required": true
+            },
+            {
+              "name": "priority",
+              "label": "Priority",
+              "type": "select",
+              "options": [
+                {"value": "low", "label": "Low"},
+                {"value": "medium", "label": "Medium"},
+                {"value": "high", "label": "High"}
+              ]
+            },
+            {
+              "name": "assignee",
+              "label": "Assign To",
+              "type": "select",
+              "options": [
+                {"value": "Alice", "label": "Alice (Designer)"},
+                {"value": "Bob", "label": "Bob (Developer)"},
+                {"value": "Charlie", "label": "Charlie (Tech Writer)"}
+              ]
+            },
+            {
+              "name": "dueDate",
+              "label": "Due Date",
+              "type": "date",
+              "required": true
+            }
+          ],
+          "submitLabel": "Create Task"
+        }
+      </h6x-atom>
+
+      <!-- Task Analytics -->
+      <h2 style="font-size: 1.5rem; margin: 2rem 0 1rem 0;">Task Analytics</h2>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        
+        <h6x-atom type="stat">
+          {
+            "value": "2.5",
+            "label": "Avg. Days to Complete"
+          }
+        </h6x-atom>
+
+        <h6x-atom type="stat">
+          {
+            "value": "85%",
+            "label": "On-Time Delivery Rate"
+          }
+        </h6x-atom>
+
+        <h6x-atom type="stat">
+          {
+            "value": "12",
+            "label": "Tasks This Week"
+          }
+        </h6x-atom>
+
+        <h6x-atom type="stat">
+          {
+            "value": "3",
+            "label": "Active Team Members"
+          }
+        </h6x-atom>
+
+      </div>
+
+      <!-- System Info -->
+      <div style="margin-top: 3rem; padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem;">
+        <h3 style="margin-top: 0; font-size: 1.125rem;">💡 Pro Tip</h3>
+        <p style="color: var(--fg-muted); margin: 0;">
+          Use keyboard shortcuts to navigate faster: 'N' for new task, 'F' for filter, and '/' to search.
+          All data is automatically saved to your browser's IndexedDB.
+        </p>
+      </div>
+
+    </h6x-panel>
+
+  </h6x-layout>
+
+</h6x-app>
+
+<!-- Runtime Engine -->
+<script src="h6x-runtime.js"></script>
+
+</body>
+</html>

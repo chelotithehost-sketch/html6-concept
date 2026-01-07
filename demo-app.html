@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HTML-6X Demo | Complete Feature Showcase</title>
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self' 'unsafe-inline';
+                 style-src 'self' 'unsafe-inline';
+                 object-src 'none';
+                 base-uri 'none'">
+
+  <style>
+    /* Minimal, deterministic base layer */
+    :root {
+      --bg: #0b1220;
+      --fg: #e5e7eb;
+      --accent: #38bdf8;
+      --card-bg: #1f2937;
+      --border: #374151;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
+
+    h1, h2, h3 {
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    /* Hide h6x tags until runtime processes them */
+    h6x-app,
+    h6x-data,
+    h6x-state,
+    h6x-layout,
+    h6x-panel,
+    h6x-atom {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========================================================================
+     APPLICATION DEFINITION
+     This is the declarative layer - no code, just structure and data
+     ======================================================================== -->
+
+<h6x-app name="Admin Dashboard" mode="deterministic">
+
+  <!-- DATA LAYER -->
+  
+  <h6x-data name="users" persist="indexeddb">
+    [
+      {"id": 1, "name": "Alice Johnson", "email": "alice@example.com", "role": "admin", "active": true, "joined": "2024-01-15"},
+      {"id": 2, "name": "Bob Smith", "email": "bob@example.com", "role": "user", "active": true, "joined": "2024-02-20"},
+      {"id": 3, "name": "Eve Williams", "email": "eve@example.com", "role": "user", "active": false, "joined": "2024-03-10"},
+      {"id": 4, "name": "Charlie Brown", "email": "charlie@example.com", "role": "moderator", "active": true, "joined": "2024-04-05"},
+      {"id": 5, "name": "Diana Prince", "email": "diana@example.com", "role": "user", "active": true, "joined": "2024-05-12"}
+    ]
+  </h6x-data>
+
+  <h6x-data name="tasks">
+    [
+      {"id": 1, "title": "Review user feedback", "status": "pending", "priority": "high"},
+      {"id": 2, "title": "Update documentation", "status": "in-progress", "priority": "medium"},
+      {"id": 3, "title": "Fix login bug", "status": "completed", "priority": "high"},
+      {"id": 4, "title": "Optimize database queries", "status": "pending", "priority": "low"}
+    ]
+  </h6x-data>
+
+  <!-- COMPUTED DATA (derived from base data) -->
+  
+  <h6x-data name="activeUsers" compute="users.filter(active=true)">
+  </h6x-data>
+
+  <h6x-data name="totalUsers" compute="users.count">
+  </h6x-data>
+
+  <h6x-data name="activeCount" compute="activeUsers.count">
+  </h6x-data>
+
+  <!-- STATE MANAGEMENT -->
+  
+  <h6x-state name="currentView" initial="overview">
+  </h6x-state>
+
+  <h6x-state name="selectedUser" initial="null">
+  </h6x-state>
+
+  <!-- LAYOUT DEFINITION -->
+  
+  <h6x-layout type="dashboard">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <h6x-panel slot="sidebar">
+      Overview
+      Users
+      Tasks
+      Settings
+    </h6x-panel>
+
+    <!-- MAIN CONTENT AREA -->
+    <h6x-panel slot="main">
+      
+      <!-- Page Title -->
+      <h1 style="margin-top: 0; margin-bottom: 2rem; font-size: 2rem;">Dashboard Overview</h1>
+
+      <!-- Statistics Row -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        
+        <h6x-atom type="stat" compute="users.count" label="Total Users">
+        </h6x-atom>
+
+        <h6x-atom type="stat" compute="activeUsers.count" label="Active Users">
+        </h6x-atom>
+
+        <h6x-atom type="stat">
+          {"value": "4", "label": "Pending Tasks"}
+        </h6x-atom>
+
+        <h6x-atom type="stat">
+          {"value": "98%", "label": "Uptime"}
+        </h6x-atom>
+
+      </div>
+
+      <!-- Users Table -->
+      <h2 style="margin-bottom: 1rem; font-size: 1.5rem;">User Management</h2>
+      
+      <h6x-atom type="table" source="users">
+      </h6x-atom>
+
+      <!-- Task List -->
+      <h2 style="margin: 2rem 0 1rem 0; font-size: 1.5rem;">Recent Tasks</h2>
+      
+      <h6x-atom type="list" source="tasks">
+      </h6x-atom>
+
+      <!-- Add User Form -->
+      <h2 style="margin: 2rem 0 1rem 0; font-size: 1.5rem;">Add New User</h2>
+      
+      <h6x-atom type="form">
+        {
+          "fields": [
+            {
+              "name": "name",
+              "label": "Full Name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "name": "email",
+              "label": "Email Address",
+              "type": "email",
+              "required": true
+            },
+            {
+              "name": "role",
+              "label": "Role",
+              "type": "select",
+              "options": [
+                {"value": "user", "label": "User"},
+                {"value": "moderator", "label": "Moderator"},
+                {"value": "admin", "label": "Administrator"}
+              ]
+            }
+          ],
+          "submitLabel": "Add User"
+        }
+      </h6x-atom>
+
+      <!-- Info Cards -->
+      <h2 style="margin: 2rem 0 1rem 0; font-size: 1.5rem;">System Information</h2>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+        
+        <h6x-atom type="card">
+          {
+            "title": "Last Backup",
+            "content": "System backup completed successfully on January 7, 2026 at 3:00 AM. Next scheduled backup: January 8, 2026."
+          }
+        </h6x-atom>
+
+        <h6x-atom type="card">
+          {
+            "title": "Security Status",
+            "content": "All security checks passed. No vulnerabilities detected. Last scan: 2 hours ago."
+          }
+        </h6x-atom>
+
+        <h6x-atom type="card">
+          {
+            "title": "API Status",
+            "content": "All API endpoints are operational. Average response time: 45ms. 99.9% uptime this month."
+          }
+        </h6x-atom>
+
+      </div>
+
+    </h6x-panel>
+
+  </h6x-layout>
+
+</h6x-app>
+
+<!-- ========================================================================
+     RUNTIME ENGINE
+     This processes the declarative markup above
+     ======================================================================== -->
+
+<script src="h6x-runtime.js"></script>
+
+</body>
+</html>
