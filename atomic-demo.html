@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HTML-6X Atomic Demo | The Nuclear Reactor</title>
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self' 'unsafe-inline';
+                 style-src 'self' 'unsafe-inline';
+                 connect-src *;
+                 object-src 'none';
+                 base-uri 'none'">
+
+  <style>
+    :root {
+      --bg: #0a0e27;
+      --surface: #1a1f3a;
+      --border: #2a3353;
+      --fg: #e8eaf0;
+      --fg-muted: #8b92b0;
+      --proton: #ff6b6b;
+      --neutron: #4ecdc4;
+      --electron: #ffe66d;
+      --glow: rgba(78, 205, 196, 0.3);
+      font-family: 'Monaco', 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: 0 0 30px var(--glow);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 3rem;
+      background: linear-gradient(135deg, var(--proton), var(--electron));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--fg-muted);
+      font-size: 1.25rem;
+      margin-top: 0.5rem;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: rgba(42, 51, 83, 0.5);
+      border-radius: 0.5rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .legend-dot.proton { background: var(--proton); color: var(--proton); }
+    .legend-dot.neutron { background: var(--neutron); color: var(--neutron); }
+    .legend-dot.electron { background: var(--electron); color: var(--electron); }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .atom-container {
+      padding: 2rem;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 1rem;
+      position: relative;
+    }
+
+    .atom-container::before {
+      content: attr(data-atomic-number) 'p ' attr(data-atomic-mass) 'm';
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(78, 205, 196, 0.2);
+      border: 1px solid var(--neutron);
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      color: var(--neutron);
+    }
+
+    .atom-title {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 1.5rem;
+    }
+
+    .subatomic-info {
+      margin: 1rem 0;
+      padding: 1rem;
+      background: rgba(42, 51, 83, 0.5);
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-family: monospace;
+    }
+
+    .particle-count {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .particle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .particle-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .particle-dot.p { background: var(--proton); }
+    .particle-dot.n { background: var(--neutron); }
+    .particle-dot.e { background: var(--electron); }
+
+    input, textarea, select, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      background: rgba(42, 51, 83, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      color: var(--fg);
+      font-family: inherit;
+      font-size: 1rem;
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--proton), var(--electron));
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px var(--glow);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      color: var(--fg-muted);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .molecule-container {
+      padding: 2rem;
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .bond-indicator {
+      text-align: center;
+      padding: 1rem;
+      margin: 1rem 0;
+      background: rgba(78, 205, 196, 0.1);
+      border: 1px solid var(--neutron);
+      border-radius: 0.5rem;
+      font-family: monospace;
+    }
+
+    .console-output {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #000;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      font-family: 'Monaco', monospace;
+      font-size: 0.875rem;
+      max-height: 300px;
+      overflow-y: auto;
+      color: #0f0;
+    }
+
+    .console-output .log { color: #0f0; }
+    .console-output .warn { color: #ff0; }
+    .console-output .error { color: #f00; }
+
+    atom, molecule, proton, neutron, electron {
+      display: none;
+    }
+
+    .nucleus-viz {
+      display: flex;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+      margin: 0.5rem 0;
+    }
+
+    .nucleus-viz span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>⚛️ HTML-6X Atomic Demo</h1>
+    <p class="subtitle">Real atoms with protons, neutrons, and electrons</p>
+    
+    <div class="legend">
+      <div class="legend-item">
+        <span class="legend-dot proton"></span>
+        <span>Protons (Data)</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot neutron"></span>
+        <span>Neutrons (Logic)</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot electron"></span>
+        <span>Electrons (Events)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       DEMO 1: Simple Contact Form Atom
+       Atomic Number: 3 (email, message, name)
+       ======================================================================== -->
+
+  <div class="demo-grid">
+    <div>
+      <h2>Demo 1: Contact Form Atom</h2>
+      <p style="color: var(--fg-muted);">
+        A simple atom with 3 protons (data), 2 neutrons (validation), and 1 electron (submit).
+      </p>
+
+      <atom name="contact-form" atomic-number="3">
+        <!-- NUCLEUS: Core Data (Protons) -->
+        <proton local="email" />
+        <proton local="message" />
+        <proton local="name" />
+
+        <!-- STABILITY: Validation Logic (Neutrons) -->
+        <neutron type="validate">
+          email: required, email-format
+          message: required, minLength(10)
+          name: required
+        </neutron>
+
+        <neutron type="compute">
+          canSubmit = email.valid && message.valid && name.valid
+        </neutron>
+
+        <!-- INTERACTIVITY: Event Handlers (Electrons) -->
+        <electron on="submit" action="send" endpoint="/api/contact">
+          method: POST
+          redirect: /thank-you
+        </electron>
+      </atom>
+    </div>
+
+    <div>
+      <h2>Visual Structure</h2>
+      <div class="subatomic-info">
+        <div class="particle-count">
+          <div class="particle">
+            <span class="particle-dot p"></span>
+            <span>3 Protons (email, message, name)</span>
+          </div>
+        </div>
+        <div class="particle-count">
+          <div class="particle">
+            <span class="particle-dot n"></span>
+            <span>2 Neutrons (validate, compute)</span>
+          </div>
+        </div>
+        <div class="particle-count">
+          <div class="particle">
+            <span class="particle-dot e"></span>
+            <span>1 Electron (submit)</span>
+          </div>
+        </div>
+        <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border);">
+          <strong>Atomic Mass:</strong> 6 (3p + 2n + 1e)<br>
+          <strong>Stability:</strong> 0.67 (2n / 3p) ⚠️ Could use more neutrons
+        </div>
+      </div>
+
+      <div class="nucleus-viz">
+        <strong style="width: 100%;">Nucleus visualization:</strong>
+        <span style="background: var(--proton);" title="Proton: email"></span>
+        <span style="background: var(--proton);" title="Proton: message"></span>
+        <span style="background: var(--proton);" title="Proton: name"></span>
+        <span style="background: var(--neutron);" title="Neutron: validate"></span>
+        <span style="background: var(--neutron);" title="Neutron: compute"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       DEMO 2: Authentication Atom (More Complex)
+       Atomic Number: 6
+       ======================================================================== -->
+
+  <h2 style="margin-top: 3rem; margin-bottom: 1rem;">Demo 2: Authentication Atom</h2>
+  <p style="color: var(--fg-muted); margin-bottom: 2rem;">
+    A heavier atom with more protons (data sources) and neutrons (security logic).
+  </p>
+
+  <div class="demo-grid">
+    <div>
+      <atom name="user-auth" atomic-number="6">
+        <!-- NUCLEUS: More Complex Data Structure -->
+        <proton source="https://api.example.com/session" cache="memory" />
+        <proton local="email" />
+        <proton local="password" />
+        <proton local="rememberMe" />
+        <proton local="token" persist="localStorage" />
+        <proton source="localStorage.user" fallback="guest" />
+
+        <!-- MORE NEUTRONS = MORE STABILITY -->
+        <neutron type="validate">
+          email: required, email-format
+          password: required, minLength(8), hasNumber, hasSpecial
+        </neutron>
+
+        <neutron type="security">
+          rateLimit: 3-attempts/5-minutes
+          encryption: bcrypt
+          tokenExpiry: 24h
+        </neutron>
+
+        <neutron type="compute">
+          isAuthenticated = session.active && token.valid
+          canLogin = email.valid && password.valid && !rateLimited
+        </neutron>
+
+        <neutron type="transform">
+          email: lowercase, trim
+          password: hash
+        </neutron>
+
+        <!-- MULTIPLE ELECTRONS FOR DIFFERENT INTERACTIONS -->
+        <electron on="submit" action="login" endpoint="/api/auth/login">
+          validate: true
+          method: POST
+          onSuccess: redirect(/dashboard)
+        </electron>
+
+        <electron on="logout" action="clear-session">
+          clearStorage: true
+          redirect: /login
+        </electron>
+
+        <electron emit="auth-state-changed" bond="navbar-atom">
+          data: { user, isAuthenticated }
+        </electron>
+      </atom>
+    </div>
+
+    <div>
+      <h2>Atomic Analysis</h2>
+      <div class="subatomic-info">
+        <div class="particle-count">
+          <div class="particle">
+            <span class="particle-dot p"></span>
+            <span>6 Protons (complex data structure)</span>
+          </div>
+        </div>
+        <div class="particle-count">
+          <div class="particle">
+            <span class="particle-dot n"></span>
+            <span>4 Neutrons (security + validation)</span>
+          </div>
+        </div>
+        <div class="particle-count">
+          <div class="particle">
+            <span class="particle-dot e"></span>
+            <span>3 Electrons (login, logout, emit)</span>
+          </div>
+        </div>
+        <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border);">
+          <strong>Atomic Number:</strong> 6<br>
+          <strong>Atomic Mass:</strong> 13 (6p + 4n + 3e)<br>
+          <strong>Stability:</strong> 0.67 (4n / 6p) ✓ Good ratio<br>
+          <strong>Classification:</strong> Transition Metal (Stable & Reactive)
+        </div>
+      </div>
+
+      <div class="nucleus-viz">
+        <strong style="width: 100%;">Nucleus (6p + 4n):</strong>
+        <span style="background: var(--proton);"></span>
+        <span style="background: var(--proton);"></span>
+        <span style="background: var(--proton);"></span>
+        <span style="background: var(--neutron);"></span>
+        <span style="background: var(--proton);"></span>
+        <span style="background: var(--neutron);"></span>
+        <span style="background: var(--proton);"></span>
+        <span style="background: var(--neutron);"></span>
+        <span style="background: var(--proton);"></span>
+        <span style="background: var(--neutron);"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       DEMO 3: Molecular Structure (Bonded Atoms)
+       ======================================================================== -->
+
+  <h2 style="margin-top: 3rem; margin-bottom: 1rem;">Demo 3: Molecular Structure</h2>
+  <p style="color: var(--fg-muted); margin-bottom: 2rem;">
+    Multiple atoms bonded together through shared electrons.
+  </p>
+
+  <div class="molecule-container">
+    <h3 style="margin-top: 0;">Molecule: User Dashboard</h3>
+    
+    <molecule name="user-dashboard">
+      <!-- ATOM 1: User Profile -->
+      <atom name="user-profile" id="profile">
+        <proton source="/api/user" />
+        <neutron type="validate">
+          name: required
+          email: required, email-format
+        </neutron>
+        <electron on="update" action="save" emit="user-updated" />
+      </atom>
+
+      <!-- ATOM 2: Activity Feed (Bonded to Profile) -->
+      <atom name="activity-feed" id="feed">
+        <proton source="/api/activity" />
+        <electron bond="profile" listen="user-updated" action="refresh">
+          delay: 100ms
+        </electron>
+      </atom>
+
+      <!-- ATOM 3: Notification Bell (Bonded to Both) -->
+      <atom name="notifications" id="notify">
+        <proton source="/api/notifications" />
+        <electron bond="profile" listen="user-updated" />
+        <electron bond="feed" listen="activity-added" />
+      </atom>
+    </molecule>
+
+    <div class="bond-indicator">
+      <strong>🔗 Covalent Bonds Detected:</strong><br>
+      profile ↔ feed (shared: user-updated event)<br>
+      profile ↔ notify (shared: user-updated event)<br>
+      feed ↔ notify (shared: activity-added event)
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       CONSOLE OUTPUT
+       ======================================================================== -->
+
+  <h2 style="margin-top: 3rem; margin-bottom: 1rem;">🖥️ Atomic Kernel Console</h2>
+  <p style="color: var(--fg-muted); margin-bottom: 1rem;">
+    Watch the nuclear reactor parse and analyze atoms in real-time. Open your browser console for full details.
+  </p>
+
+  <div class="console-output" id="console">
+    <div class="log">[⚛️  Atomic Kernel] Booting nuclear reactor...</div>
+    <div class="log">[⚛️  Atomic Kernel] Scanning for atoms...</div>
+  </div>
+</div>
+
+<!-- ========================================================================
+     ATOMIC RUNTIME ENGINE
+     ======================================================================== -->
+
+<script src="h6x-atomic-runtime.js"></script>
+
+<script>
+// Capture console output and display it
+const consoleDiv = document.getElementById('console');
+const originalLog = console.log;
+const originalWarn = console.warn;
+const originalError = console.error;
+
+console.log = function(...args) {
+  originalLog.apply(console, args);
+  const div = document.createElement('div');
+  div.className = 'log';
+  div.textContent = args.join(' ');
+  consoleDiv.appendChild(div);
+  consoleDiv.scrollTop = consoleDiv.scrollHeight;
+};
+
+console.warn = function(...args) {
+  originalWarn.apply(console, args);
+  const div = document.createElement('div');
+  div.className = 'warn';
+  div.textContent = args.join(' ');
+  consoleDiv.appendChild(div);
+  consoleDiv.scrollTop = consoleDiv.scrollHeight;
+};
+
+console.error = function(...args) {
+  originalError.apply(console, args);
+  const div = document.createElement('div');
+  div.className = 'error';
+  div.textContent = args.join(' ');
+  consoleDiv.appendChild(div);
+  consoleDiv.scrollTop = consoleDiv.scrollHeight;
+};
+</script>
+
+</body>
+</html>
